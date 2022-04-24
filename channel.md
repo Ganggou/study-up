@@ -53,3 +53,7 @@
       * G2还会被抽象成含有G2指针和recv空元素的sudog结构体保存到hchan的recvq中等待被唤醒
       * 当G1再执行的时候，并没有锁住channel，然后将数据放到缓存中，而是直接把数据从G1直接copy到了G2的栈中。在唤醒过程中，G2无需再获得channel的锁，然后从缓存中取数据。减少了内存的copy，提高了效率
        
+* channel的关闭
+  * close 函数先上一把大锁，接着把所有挂在这个 channel 上的 sender 和 receiver 全都连成一个 sudog 链表，再解锁。最后，再将所有的 sudog 全都唤醒
+* channel操作panic的情况
+  * 向一个关闭的 channel 进行写操作；关闭一个 nil 的 channel；重复关闭一个 channel(读、写一个 nil channel 都会被阻塞) 
