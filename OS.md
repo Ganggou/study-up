@@ -133,3 +133,24 @@
   * 协程的缺点
     * 无法利用多核资源：协程的本质是个单线程,它不能同时将 单个CPU 的多个核用上,协程需要和进程配合才能运行在多CPU上.当然我们日常所编写的绝大部分应用都没有这个必要，除非是cpu密集型应用。
     * 进行阻塞（Blocking）操作（如IO时）会阻塞掉整个程序
+* CPU绑定简介
+  * CPU绑定是对进程或线程设置相应的CPU Affinity，确保进程或线程只会在设置有相应标志位的CPU上运行，进而提高应用程序对CPU的使用效率。如果应用进程可以在多个CPU上运行，操作系统会在CPU之间频繁切换应用，引起CPU缓存失效，降低缓存的命中率，导致CPU使用效率下降。使用CPU绑定技术可以在一定程度上会避免CPU Cache失效，提升系统性能。
+  * CPU affinity是一种调度属性(scheduler property)，可以将一个进程绑定到一个或一组CPU上。在SMP(Symmetric Multi-Processing对称多处理)架构下，Linux调度器(scheduler)会根据CPU affinity设置让指定进程运行在绑定的CPU上，而不会在其它CPU上运行。
+  * 为了避免频繁切换进程，造成进程上下文开销，可以手动地为进程分配CPU核，避免多个进程运行在一个CPU上。
+  * Linux内核进程调度器天生具有软CPU亲和性（affinity）特性，调度器会试图保持进程在相同的CPU上运行, 即进程通常不会在处理器之间频繁迁移。
+    * 查看所有进程CPU分配情况
+      * ps -eo pid,cmd,psr
+    * 查看进程的所有线程的CPU分配情况
+      * ps -To 'pid,lwp,psr,cmd' -p [PID]
+* taskset绑定进程
+  * 安装taskset工具 
+    * yum install util-linux
+  * 查看进程的CPU Affinity，使用-p选项指定PID，默认打印十六进制数，如果指定-cp选项打印CPU核列表。3的二进制形式是0011，对应-cp打印0和1，表示进程只能运行在CPU的第0个核和第1个核。
+    * taskset [options] [mask] -p pid
+  * 查看指定进程的CPU Affinity 
+    * taskset -c -p pid
+  ```
+  taskset -p mask pid
+  taskset -c [CPU NUMBER] -p PID
+  ```
+  
